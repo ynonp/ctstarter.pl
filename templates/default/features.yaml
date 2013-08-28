@@ -1,0 +1,11 @@
+- DefaultGenerator
+
+- TwitterBootstrapView
+
+- AddPlugins:
+  - StackTrace
+
+- DBIx:
+    dsn: dbi:SQLite:dbname=share/db-schema.db
+
+- UserManagement

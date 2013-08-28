@@ -477,8 +477,6 @@ __END__
 @reset_admin_password.pl
 #!/usr/bin/env perl
 
-# \[\% test \%\]
-
 use strict;
 use warnings;
 use lib 'lib';
