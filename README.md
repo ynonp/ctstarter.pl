@@ -39,9 +39,9 @@ default template takes only a single configuration option: dsn.
 
 You can pass a configuration file using --config-file. Here's a sample
 config.json you can use:
-  {
-    "appname" : "My::Simple::App",
-  }
+ {
+   "appname" : "My::Simple::App",
+ }
 
 And the full catalyzer command:
 
