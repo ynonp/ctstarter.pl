@@ -39,14 +39,14 @@ default template takes only a single configuration option: dsn.
 
 You can pass a configuration file using --config-file. Here's a sample
 config.json you can use:
- {
-   "appname" : "My::Simple::App",
- }
+
+	{
+	   "appname" : "My::Simple::App",
+	}
 
 And the full catalyzer command:
 
-  catalyzer.pl --appname My::App --template templates/default
---config-file config.json   
+	catalyzer.pl --appname My::App --template templates/default --config-file config.json   
 
 ## What You Get From Default Template
 
@@ -141,55 +141,56 @@ To see how everything works, just point your browser to `/members/hello`.
 A template is basically a list of features, with data files for each
 feature. Here's what the default template looks like:
 
-templates/default/
-├── features
-│   ├── DBIx
-│   │   ├── DB.pm
-│   │   ├── Schema.pm
-│   │   ├── db-schema.db
-│   │   └── upgrade_db.pl
-│   ├── TwitterBootstrapView
-│   │   ├── HTML.pm
-│   │   ├── css
-│   │   │   ├── bootstrap-theme.css
-│   │   │   ├── bootstrap-theme.min.css
-│   │   │   ├── bootstrap.css
-│   │   │   └── bootstrap.min.css
-│   │   ├── fonts
-│   │   │   ├── glyphicons-halflings-regular.eot
-│   │   │   ├── glyphicons-halflings-regular.svg
-│   │   │   ├── glyphicons-halflings-regular.ttf
-│   │   │   └── glyphicons-halflings-regular.woff
-│   │   ├── include
-│   │   │   ├── layout
-│   │   │   │   └── simple
-│   │   │   └── login
-│   │   │       └── login.tt
-│   │   └── js
-│   │       ├── bootstrap.js
-│   │       └── bootstrap.min.js
-│   └── UserManagement
-│       ├── Members.pm
-│       ├── Role.pm
-│       ├── User.pm
-│       ├── UserRole.pm
-│       └── reset_admin_password.pl
-└── features.yaml
+	templates/default/
+	├── features
+	│   ├── DBIx
+	│   │   ├── DB.pm
+	│   │   ├── Schema.pm
+	│   │   ├── db-schema.db
+	│   │   └── upgrade_db.pl
+	│   ├── TwitterBootstrapView
+	│   │   ├── HTML.pm
+	│   │   ├── css
+	│   │   │   ├── bootstrap-theme.css
+	│   │   │   ├── bootstrap-theme.min.css
+	│   │   │   ├── bootstrap.css
+	│   │   │   └── bootstrap.min.css
+	│   │   ├── fonts
+	│   │   │   ├── glyphicons-halflings-regular.eot
+	│   │   │   ├── glyphicons-halflings-regular.svg
+	│   │   │   ├── glyphicons-halflings-regular.ttf
+	│   │   │   └── glyphicons-halflings-regular.woff
+	│   │   ├── include
+	│   │   │   ├── layout
+	│   │   │   │   └── simple
+	│   │   │   └── login
+	│   │   │       └── login.tt
+	│   │   └── js
+	│   │       ├── bootstrap.js
+	│   │       └── bootstrap.min.js
+	│   └── UserManagement
+	│       ├── Members.pm
+	│       ├── Role.pm
+	│       ├── User.pm
+	│       ├── UserRole.pm
+	│       └── reset_admin_password.pl
+	└── features.yaml
 
-10 directories, 23 files
+	10 directories, 23 files
 
 Each template needs an index file named features.yaml. Here's the
 one from our default template
 
-  - DefaultGenerator
-  - TwitterBootstrapView
+	- DefaultGenerator
+	- TwitterBootstrapView
 
-  - AddPlugins:
-    - StackTrace
+	- AddPlugins:
+	 - StackTrace
 
-  - DBIx:
-      dsn: dbi:SQLite:dbname=share/db-schema.db
-  - UserManagement
+	- DBIx:
+	    dsn: dbi:SQLite:dbname=share/db-schema.db
+	    
+	- UserManagement
 
 As you can see, it lists all the features that will be used in the
 template. All features are searched in namespace
@@ -251,26 +252,26 @@ the feature.
 Let's take TwitterBootstrapView feature as an example and see how it is
 implemented.
 
-  package CatalystX::ProjectBuilder::Features::TwitterBootstrapView;
-  use Moose;
-  with 'CatalystX::ProjectBuilder::Feature';
-  with 'CatalystX::ProjectBuilder::GenFiles';
+	package CatalystX::ProjectBuilder::Features::TwitterBootstrapView;
+	use Moose;
+	with 'CatalystX::ProjectBuilder::Feature';
+	with 'CatalystX::ProjectBuilder::GenFiles';
 
-  sub required_keys {}
+	sub required_keys {}
 
 
-  sub process {
-    my ( $self ) = @_;
+	sub process {
+	  my ( $self ) = @_;
 
-    $self->gen_dir({ from => ['css'], to => ['root', 'static', 'css'] });
-    $self->gen_dir({ from => ['js'], to => ['root', 'static', 'js'] });
-    $self->gen_dir({ from => ['fonts'], to => ['root', 'static', 'fonts'] });
+	  $self->gen_dir({ from => ['css'], to => ['root', 'static', 'css'] });
+	  $self->gen_dir({ from => ['js'], to => ['root', 'static', 'js'] });
+	  $self->gen_dir({ from => ['fonts'], to => ['root', 'static', 'fonts'] });
 
-    $self->gen_dir({ from => ['include'], to => ['root']});
+	  $self->gen_dir({ from => ['include'], to => ['root']});
 
-    my @app_path = split /::/, $self->conf->{appname};
-    $self->t_gen_file('HTML.pm', { to => ['lib', @app_path, 'View', 'HTML.pm']});
-  }
+	  my @app_path = split /::/, $self->conf->{appname};
+	  $self->t_gen_file('HTML.pm', { to => ['lib', @app_path, 'View', 'HTML.pm']});
+	}
 
 The class consumes two roles: `Feature` and `GenFiles`. `Feature` provides
 empty process() and post_process(), as well as support for input
@@ -279,10 +280,10 @@ configurations through $self->conf.
 `GenFiles` provides the ability to deploy files from the template dir to
 the application dir using gen_file, gen_dir or t_gen_file.
 
-gen_file simply copies the file using File::Copy::Recursive
+* gen_file simply copies the file using File::Copy::Recursive
 
-gen_dir copies a directory using File::Copy::Recursive
+* gen_dir copies a directory using File::Copy::Recursive
 
-t_gen_file uses Template to render the file, providing $self->config as
+* t_gen_file uses Template to render the file, providing $self->config as
 the stash
 
