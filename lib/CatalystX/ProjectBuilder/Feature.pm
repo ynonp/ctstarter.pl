@@ -6,10 +6,8 @@ package CatalystX::ProjectBuilder::Feature {
   use Moose::Role;
   use Path::Class::File;
   use Path::Class::Dir;
-  use Template::Tiny;
   use Template;
 
-  use String::CamelCase qw/decamelize/;
   use File::Slurp qw/read_file write_file/;
   use Hash::Merge;
   use Config::General;

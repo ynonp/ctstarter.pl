@@ -20,6 +20,30 @@ package CatalystX::ProjectBuilder {
 
   with 'CatalystX::ProjectBuilder::PluginManager';
 
+  sub _extract_feature_item {
+    my ( $self, $item ) = @_;
+    my $hm = Hash::Merge->new('LEFT_PRECEDENT');
+
+    my $conf = $self->conf;
+    my $name = $item;
+
+    if ( ref($item) eq 'HASH' ) {
+      # feature_item is a hash ref, so it includes a name
+      # AND additional config options
+      ( $name ) = keys %$item;
+
+      if ( ref($item->{$name}) eq 'ARRAY' ) {
+        $conf->{$name} = $item->{$name};
+      } elsif ( ref($item->{$name}) eq 'HASH' ) {
+        $conf = $hm->merge( $self->conf, $item->{$name} );
+      } else {
+        die "Invalid defaults for feature $name. Array or Hash expected";
+      }
+    }
+
+    return ( $name, $conf );
+  }
+
   sub _build_features {
     my ( $self ) = @_;
     my $features_path = $self->base_dir . '/features.yaml';
@@ -31,29 +55,15 @@ package CatalystX::ProjectBuilder {
 
     my @result;
 
-    foreach my $feature_item ( @$features_ref ) {
-      my $feature_name = $feature_item;
-      my $hm = Hash::Merge->new('LEFT_PRECEDENT');
+    foreach my $item ( @$features_ref ) {
+      my ( $name, $conf ) = $self->_extract_feature_item( $item );
 
-      if ( ref($feature_item) eq 'HASH' ) {
-        # feature_item is a hash ref, so it includes a name
-        # AND additional config options
-        ( $feature_name ) = keys %$feature_item;
-
-        if ( ref($feature_item->{$feature_name}) eq 'ARRAY' ) {
-          $self->conf->{$feature_name} = $feature_item->{$feature_name};
-        } elsif ( ref($feature_item->{$feature_name}) eq 'HASH' ) {
-          $self->conf( $hm->merge( $self->conf, $feature_item->{$feature_name} ) );
-        } else {
-          die "Invalid defaults for feature $feature_name. Array or Hash expected";
-        }
-      }
-
-      $feature_name = "CatalystX::ProjectBuilder::Features::" . $feature_name;
+      my $feature_name = "CatalystX::ProjectBuilder::Features::" . $name;
       eval "require $feature_name";
       die $@ if $@;
 
-      my $feature = $feature_name->new( base_dir => $self->base_dir, conf => $self->conf, plugin_mgr => $self );
+      my $feature = $feature_name->new(
+        base_dir => $self->base_dir, conf => $conf, plugin_mgr => $self );
       push @result, $feature;
     }
     return \@result;
