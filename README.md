@@ -26,9 +26,9 @@ and some TT templates using Twitter Bootstrap.
 
 Create an app with a builtin default template:
 
-  catalyzer.pl --appname My::App --template templates/default
+    catalyzer.pl --appname My::App --template templates/default
 
-  catalyzer.pl --appname My::App --template
+    catalyzer.pl --appname My::App --template
 https://github.com/ynonp/catalyzer-spa-template.git
 
 ## Configuration Format
