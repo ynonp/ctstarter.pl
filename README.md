@@ -28,8 +28,7 @@ Create an app with a builtin default template:
 
     catalyzer.pl --appname My::App --template templates/default
 
-    catalyzer.pl --appname My::App --template
-https://github.com/ynonp/catalyzer-spa-template.git
+    catalyzer.pl --appname My::App --template https://github.com/ynonp/catalyzer-spa-template.git
 
 ## Configuration Format
 
