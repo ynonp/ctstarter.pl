@@ -10,17 +10,45 @@ However, real world apps usually needs a bit more: Database, User management, an
 
 ctstarter.pl aims to provide a true base template for a catalyst web application.
 
+## Catalyzer Templates
+
+catalyzer takes a template and some configuration options, and generates
+the starter application for you according to the template.
+
+Each template is a collection of Features, with possible default values
+for the features.
+
+We also included a default template that generates a catalyst
+application with SQLite database, basic user management, an HTML view
+and some TT templates using Twitter Bootstrap.
+
 ## Usage
 
-	catalyst.pl MyApp
-	cd MyApp
-	perl Makefile.PL
-	
-	ctstarter.pl
-	
-After creating the initial directories with catalyst.pl, you can just run ctstarter.pl from a catalyst root directory.
+Create an app with a builtin default template:
 
-## What You Get
+  catalyzer.pl --appname My::App --template templates/default
+
+  catalyzer.pl --appname My::App --template
+https://github.com/ynonp/catalyzer-spa-template.git
+
+## Configuration Format
+
+A template can be customized using a configuration file. The meaning of
+the keys in the configuration depends on the template. For example, the
+default template takes only a single configuration option: dsn.
+
+You can pass a configuration file using --config-file. Here's a sample
+config.json you can use:
+  {
+    "appname" : "My::Simple::App",
+  }
+
+And the full catalyzer command:
+
+  catalyzer.pl --appname My::App --template templates/default
+--config-file config.json   
+
+## What You Get From Default Template
 
 ## [DBIx::Class Schema](https://metacpan.org/module/DBIx::Class)
 
@@ -108,26 +136,153 @@ ctstarter.pl creates:
 
 To see how everything works, just point your browser to `/members/hello`.
 
-## More Awsomeness
+## Building Your Own Templates
 
-ctstarter.pl supports command line options to run only the features you need. 
+A template is basically a list of features, with data files for each
+feature. Here's what the default template looks like:
 
-	ctstarter.pl --tasks=view
+templates/default/
+├── features
+│   ├── DBIx
+│   │   ├── DB.pm
+│   │   ├── Schema.pm
+│   │   ├── db-schema.db
+│   │   └── upgrade_db.pl
+│   ├── TwitterBootstrapView
+│   │   ├── HTML.pm
+│   │   ├── css
+│   │   │   ├── bootstrap-theme.css
+│   │   │   ├── bootstrap-theme.min.css
+│   │   │   ├── bootstrap.css
+│   │   │   └── bootstrap.min.css
+│   │   ├── fonts
+│   │   │   ├── glyphicons-halflings-regular.eot
+│   │   │   ├── glyphicons-halflings-regular.svg
+│   │   │   ├── glyphicons-halflings-regular.ttf
+│   │   │   └── glyphicons-halflings-regular.woff
+│   │   ├── include
+│   │   │   ├── layout
+│   │   │   │   └── simple
+│   │   │   └── login
+│   │   │       └── login.tt
+│   │   └── js
+│   │       ├── bootstrap.js
+│   │       └── bootstrap.min.js
+│   └── UserManagement
+│       ├── Members.pm
+│       ├── Role.pm
+│       ├── User.pm
+│       ├── UserRole.pm
+│       └── reset_admin_password.pl
+└── features.yaml
 
-Supported values:
+10 directories, 23 files
 
-- `scripts` creates the new scripts (reset_admin_password.pl and upgrade_db.pl).  
-- `plugins` adds a bunch of useful plugins to your application main file and to the Makefile.PL requires section.
-- `view` creates the HTML view and bootstrap view templates
-- `db` creates the database migrations
-- `users` creates the DB tables and templates for users and roles
+Each template needs an index file named features.yaml. Here's the
+one from our default template
 
-See:
-	
-	ctstarter.pl -h
-	
-For other command line options.
+  - DefaultGenerator
+  - TwitterBootstrapView
 
-## What Next
+  - AddPlugins:
+    - StackTrace
 
-ctstarter.pl is meant to help users new to catalyst get an easier head start. If you find any issues or feature requests, please report here on github.
+  - DBIx:
+      dsn: dbi:SQLite:dbname=share/db-schema.db
+  - UserManagement
+
+As you can see, it lists all the features that will be used in the
+template. All features are searched in namespace
+`CatalystX::ProjectBuilder::Features`, so for example DefaultGenerator
+feature is just a class named
+`CatalystX::ProjectBuilder::Features::DefaultGenerator`.
+
+Each feature takes input arguments from two sources: Default arguments
+given in features.yaml, and runtime arguments given as a configuration
+file to catalyzer.  
+In the above features.yaml, the DBIx feature expects to get `dsn`, and
+uses a default value `dbi:SQLite:dbname=share/db-schema.db`.
+
+Features also deploy files which are part of the template.
+
+To create a new template do the following:
+
+1. Start with the existing default template
+2. Change the features you need
+3. Modify default parameters for these features
+4. Modify deployment files for these features
+5. Write new features as needed
+
+## Adding A New Feature
+
+Catalyzer will automatically load all .pm files under your template's
+`features/` folder, as well as any feature specified in the
+features.yaml file by namespace.
+
+A feature is just a class that provides 3 functions:
+
+1. process
+2. post_process
+3. required_keys
+
+You'll also get a lot of functionality by including the 'Feature' role.
+
+#### process function
+
+The process function is called BEFORE the resulted Catalyst app is
+loaded. You can use it to create files or modify config files, add
+plugins etc. 
+
+#### post_process function
+
+After all feature's `process` functions were called, catalyzer loads the
+resulted Catalyst app and starts calling post_process on each feature.  
+post_process accepts, in addition to $self, the catalyst app as its
+first argument. 
+
+#### required_keys
+
+This method returns a list of configuration keys the feature needs to
+run. Catalyzer checks all required keys were passed in before running
+the feature.
+
+#### Feature Example
+
+Let's take TwitterBootstrapView feature as an example and see how it is
+implemented.
+
+  package CatalystX::ProjectBuilder::Features::TwitterBootstrapView;
+  use Moose;
+  with 'CatalystX::ProjectBuilder::Feature';
+  with 'CatalystX::ProjectBuilder::GenFiles';
+
+  sub required_keys {}
+
+
+  sub process {
+    my ( $self ) = @_;
+
+    $self->gen_dir({ from => ['css'], to => ['root', 'static', 'css'] });
+    $self->gen_dir({ from => ['js'], to => ['root', 'static', 'js'] });
+    $self->gen_dir({ from => ['fonts'], to => ['root', 'static', 'fonts'] });
+
+    $self->gen_dir({ from => ['include'], to => ['root']});
+
+    my @app_path = split /::/, $self->conf->{appname};
+    $self->t_gen_file('HTML.pm', { to => ['lib', @app_path, 'View', 'HTML.pm']});
+  }
+
+The class consumes two roles: `Feature` and `GenFiles`. `Feature` provides
+empty process() and post_process(), as well as support for input
+configurations through $self->conf.
+
+`GenFiles` provides the ability to deploy files from the template dir to
+the application dir using gen_file, gen_dir or t_gen_file.
+
+gen_file simply copies the file using File::Copy::Recursive
+
+gen_dir copies a directory using File::Copy::Recursive
+
+t_gen_file uses Template to render the file, providing $self->config as
+the stash
+

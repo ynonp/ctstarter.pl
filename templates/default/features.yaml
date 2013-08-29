@@ -1,5 +1,4 @@
 - DefaultGenerator
-
 - TwitterBootstrapView
 
 - AddPlugins:
@@ -7,15 +6,5 @@
 
 - DBIx:
     dsn: dbi:SQLite:dbname=share/db-schema.db
-
-- AddPlugins:
-    - I18N
-
 - UserManagement
 
-- System:
-    - ls
-    - touch foo
-    - touch bar
-    - mkdir mytest
-    - touch mytest/foo mytest/bar mytest/buz
