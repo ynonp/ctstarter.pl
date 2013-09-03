@@ -24,10 +24,8 @@ package CatalystX::ProjectBuilder::Features::DefaultGenerator {
         name => $self->conf->{appname},
       }
     );
-# Pass $ARGV[0] for compatibility with old ::Devel
-    pod2usage(1) unless $helper->mk_app( $self->conf->{appname} );
 
-    # system('catalyst.pl', $self->conf->{appname});
+    pod2usage(1) unless $helper->mk_app( $self->conf->{appname} );
   }
 
 }
